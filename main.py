@@ -15,9 +15,14 @@ maxlen = 400
 batch_size = 32
 embedding_dims = 50
 epochs = 10
+learning_rate = 0.001
+decay = 0.001
 
 print('Loading data...')
-(x_train, y_train), (x_test, y_test) = reuters.load_data('reuters.npz', num_words=num_words, maxlen=maxlen)
+(x_train, y_train), (x_test, y_test) = reuters.load_data('reuters.npz',
+                                                         num_words=num_words,
+                                                         maxlen=maxlen,
+                                                         seed=np.random.randint(10000))
 (x_train, x_valid) = np.split(x_train, [8000])
 (y_train, y_valid) = np.split(y_train, [8000])
 print(len(x_train), 'train sequences')
@@ -57,7 +62,7 @@ print('x_test_right shape:', x_test_right.shape)
 
 print('Build model...')
 model = RCNN(maxlen, num_words, embedding_dims, class_num=num_class, last_activation='softmax').get_model()
-optimizer = Adam(lr=0.01, decay=0.009)
+optimizer = Adam(lr=learning_rate, decay=decay)
 model.compile(optimizer, 'categorical_crossentropy', metrics=['accuracy'])
 model.load_weights('model/rcnn/rcnn.h5')
 
