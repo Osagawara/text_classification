@@ -15,8 +15,8 @@ maxlen = 400
 batch_size = 32
 embedding_dims = 50
 epochs = 10
-learning_rate = 0.001
-decay = 0.001
+learning_rate = 0.00002
+decay = 0.0005
 
 print('Loading data...')
 (x_train, y_train), (x_test, y_test) = reuters.load_data('reuters.npz',
@@ -77,6 +77,5 @@ model.fit([x_train_current, x_train_left, x_train_right], y_train_one_hot,
 
 print('Test...')
 result = model.predict([x_test_current, x_test_left, x_test_right])
-print(result[:100])
 
 model.save_weights('model/rcnn/rcnn.h5')

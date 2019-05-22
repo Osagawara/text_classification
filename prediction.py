@@ -17,10 +17,16 @@ x_test_current = x_test
 x_test_left = np.hstack([np.expand_dims(x_test[:, 0], axis=1), x_test[:, 0:-1]])
 x_test_right = np.hstack([x_test[:, 1:], np.expand_dims(x_test[:, -1], axis=1)])
 
-model = RCNN(maxlen, num_words, embedding_dims, class_num=num_class, last_activation='softmax').get_model()
+rcnn = RCNN(maxlen, num_words, embedding_dims, class_num=num_class, last_activation='softmax')
+model = rcnn.get_model()
 model.load_weights('model/rcnn/rcnn.h5')
 results = model.predict([x_test_current, x_test_left, x_test_right])
 
 results = np.argmax(results, axis=1)
 accuracy = np.sum(results == y_test) / len(y_test)
 print('accuracy: {}'.format(accuracy))
+
+extractor = rcnn.get_extractor()
+extractor.load_weights('model/rcnn/rcnn.h5')
+features = model.predict([x_test_current, x_test_left, x_test_right])
+print(features.shape)
