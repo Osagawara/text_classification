@@ -1,6 +1,8 @@
 # coding=utf-8
 
-from keras import Input, Model
+from keras.layers import Input
+from keras.models import Model
+from keras.activations import softmax
 from keras import backend as K
 from keras.layers import Embedding, Dense, SimpleRNN, Lambda, Concatenate, Conv1D, GlobalMaxPooling1D
 
@@ -33,6 +35,7 @@ class RCNN(object):
         x = Conv1D(64, kernel_size=1, activation='tanh')(x)
         x = GlobalMaxPooling1D()(x)
 
-        output = Dense(self.class_num, activation=self.last_activation)(x)
+        output = Dense(self.class_num)(x)
+        output = Lambda(lambda x: softmax(x))(output)
         model = Model(inputs=[input_current, input_left, input_right], outputs=output)
         return model
