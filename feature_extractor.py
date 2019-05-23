@@ -28,4 +28,4 @@ extractor.load_weights('model/rcnn/rcnn.h5')
 
 features = extractor.predict([data_current, data_left, data_right])
 
-np.savez('data/features.npz', features, label)
+np.savez('data/features.npz', features=features, label=label)
