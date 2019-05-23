@@ -25,8 +25,3 @@ results = model.predict([x_test_current, x_test_left, x_test_right])
 results = np.argmax(results, axis=1)
 accuracy = np.sum(results == y_test) / len(y_test)
 print('accuracy: {}'.format(accuracy))
-
-extractor = rcnn.get_extractor()
-extractor.load_weights('model/rcnn/rcnn.h5')
-features = model.predict([x_test_current, x_test_left, x_test_right])
-print(features.shape)

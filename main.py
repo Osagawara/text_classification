@@ -12,6 +12,7 @@ from rcnn import RCNN
 num_words = 5000
 num_class = 46
 maxlen = 400
+
 batch_size = 32
 embedding_dims = 50
 epochs = 10
