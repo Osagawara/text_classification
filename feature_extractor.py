@@ -17,7 +17,7 @@ x_train = sequence.pad_sequences(x_train, maxlen=maxlen)
 x_test = sequence.pad_sequences(x_test, maxlen=maxlen)
 
 data = np.concatenate([x_train, x_test])
-label = np.concatenate([y_train, y_test])
+labels = np.concatenate([y_train, y_test])
 data_current = data
 data_left = np.hstack([np.expand_dims(data[:, 0], axis=1), data[:, 0:-1]])
 data_right = np.hstack([data[:, 1:], np.expand_dims(data[:, -1], axis=1)])
@@ -28,4 +28,4 @@ extractor.load_weights('model/rcnn/rcnn.h5')
 
 features = extractor.predict([data_current, data_left, data_right])
 
-np.savez('data/features.npz', features=features, label=label)
+np.savez('data/features.npz', features=features, labels=labels)

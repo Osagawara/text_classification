@@ -60,3 +60,12 @@ if __name__ == '__main__':
     optimizer = Adam(lr=learning_rate, decay=decay)
     trainer.compile(optimizer, loss='binary_crossentropy')
 
+    d = np.load('data/features.npz')
+    features = d['features']
+    labels = d['labels']
+    features /= np.max(features)
+
+    trainer.fit(features, features, batch_size, epochs, validation_split=0.1)
+    trainer.save_weights('model/autoencoder/auto.h5')
+
+
