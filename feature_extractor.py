@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from keras.datasets import reuters
 from keras.preprocessing import sequence
-from sklearn.decomposition import PCA
 from rcnn import RCNN
 
 num_words = 5000

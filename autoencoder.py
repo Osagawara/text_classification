@@ -7,6 +7,7 @@ import numpy as np
 from keras.models import Model
 from keras.optimizers import Adam
 from keras.layers import Input, Dense
+from keras.callbacks import TensorBoard
 
 
 class auto_encoder(object):
@@ -42,7 +43,7 @@ class auto_encoder(object):
         model = Model(inputs=[self.input], outputs=[self.output])
         return model
 
-    def get_dim_reductor(self):
+    def get_dim_reducer(self):
         model = Model(inputs=[self.input], outputs=[self.two_dim])
         return model
 
@@ -50,22 +51,23 @@ class auto_encoder(object):
 if __name__ == '__main__':
     feature_len = 46
     inner = [16, 8, 2, 8, 16]
-    learning_rate = 0.001
-    decay = 0.001
+    learning_rate = 0.0001
+    decay = 0.0005
     batch_size = 32
-    epochs = 10
+    epochs = 20
 
     auto = auto_encoder(feature_len, inner)
     trainer = auto.get_auto()
     optimizer = Adam(lr=learning_rate, decay=decay)
-    trainer.compile(optimizer, loss='binary_crossentropy')
+    trainer.compile(optimizer, loss='mean_squared_error')
 
     d = np.load('data/features.npz')
     features = d['features']
     labels = d['labels']
-    features /= np.max(features)
 
-    trainer.fit(features, features, batch_size, epochs, validation_split=0.1)
+    tensor_board = TensorBoard(update_freq='batch')
+    trainer.load_weights('model/autoencoder/auto.h5')
+    trainer.fit(features, features, batch_size, epochs, callbacks=[tensor_board], validation_split=0.1)
     trainer.save_weights('model/autoencoder/auto.h5')
 
 
