@@ -2,6 +2,7 @@
 检查一些正方形中,是否有重叠部分, 报告所有重叠的正方形
 '''
 import math
+import copy
 import bisect
 import time
 import random
@@ -20,21 +21,8 @@ class Point:
         self.y = y
         self.side = side
         self.belong = belong
-        self.key = self.x
 
-    def __cmp__(self, other):
-        if self.key == other.key:
-            if isinstance(other, Point):
-                return self.side - other.side
-            else:
-                if self.side == LEFT:
-                    return -1
-                else:
-                    return 1
-        elif self.key < other.key:
-            return -1
-        else:
-            return 1
+
 
 
 class Square:
@@ -43,6 +31,7 @@ class Square:
         self.down = down
         self.left = left
         self.right = right
+        self.overlap_square = set()
 
 
 class Horizontal:
@@ -58,15 +47,33 @@ class Horizontal:
         self.right = right
         self.y = y
         self.belong = belong
-        self.key = y
 
     def __cmp__(self, other):
-        if self.key == other.key:
+        if self.__eq__(self, other):
             return 0
-        elif self.key < other.key:
+        elif self.__lt__(self, other):
             return -1
         else:
             return 1
+
+    def __eq__(self, other):
+        if self.y == other.y:
+            return True
+        else:
+            return False
+
+    def __lt__(self, other):
+        if self.y < other.y:
+            return True
+        else:
+            return False
+
+    def __gt__(self, other):
+        if self.y > other.y:
+            return True
+        else:
+            return False
+
 
 class Vertical:
     def __init__(self, up, down, x, belong=None):
@@ -74,21 +81,28 @@ class Vertical:
         self.down = down
         self.x = x
         self.belong = belong
-        self.key = x
 
-    def __cmp__(self, other):
-        if self.key == other.key:
-            if isinstance(other, Vertical):
-                return 0
+
+def cmp(alpha, beta):
+    if alpha.x < beta.x:
+        return -1
+    elif alpha.x > beta.x:
+        return 1
+    else:
+        if isinstance(alpha, Point):
+            if isinstance(beta, Point):
+                return alpha.side - beta.side
+            elif alpha.side == RIGHT:
+                return 1
             else:
-                if other.side == LEFT:
-                    return 1
-                else:
-                    return -1
-        elif self.key < other.key:
-            return -1
+                return -1
         else:
-            return 1
+            if isinstance(beta, Vertical):
+                return 0
+            elif beta.side == LEFT:
+                return 1
+            else:
+                return -1
 
 
 def overlap(squares):
@@ -120,14 +134,14 @@ def overlap(squares):
 
     # 由于横坐标有可能相同, 故而按照算法需要左边点在前, 垂直边在中间, 右边点在后面
     # 所以使用内建的比较函数
-    Q.sort()
+    Q.sort(key=cmp_to_key(cmp))
     cross_relation = []    # 每一个元素为相交的两条边
     R = []  # 水平边按照纵坐标的排序
     for p in Q:
         if isinstance(p, Point):
             if p.x == p.belong.left:
                 index = bisect.bisect_right(R, p.belong)
-                R.insert(index, p.belong.copy())
+                R.insert(index, p.belong)
             else:
                 index = bisect.bisect_left(R, p.belong)
                 R = R[:index] + R[index+1:]
@@ -141,14 +155,25 @@ def overlap(squares):
             for h in R[down_index:up_index]:
                 cross_relation.append([h, p])
 
-    overlaps = dict()   # 用字典表示邻接表
+    # 每一个正方形的重叠正方形, 都在overlap_square属性中
     for cr in cross_relation:
         h, v = cr
-        if h.belong not in overlaps:
-            overlaps[h] = set()
-        overlaps[h].add(v)
+        h.belong.overlap_square.add(v.belong)
+        v.belong.overlap_square.add(h.belong)
 
-    return overlaps
+    return squares
+
+
+s1 = Square(3, 1, 1, 3)
+s2 = Square(2, 0, 2, 4)
+s3 = Square(3, 1, 3.5, 5.5)
+s4 = Square(4, 2, 4.5, 6.5)
+s5 = Square(4.5, 2.5, 2.75, 4.75)
+s6 = Square(3.5, 1.5, 0.75, 2.75)
+squares = [s1, s2, s3, s4, s5, s6]
+o = overlap(squares)
+print(squares)
+print()
 
 # d = np.load('data/points.npz')
 # points = d['points']
