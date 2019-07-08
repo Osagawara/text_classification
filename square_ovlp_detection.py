@@ -8,7 +8,6 @@ import time
 import random
 import numpy as np
 from functools import cmp_to_key
-from bintrees import FastRBTree
 
 LEFT = 0
 RIGHT = 1
@@ -21,9 +20,6 @@ class Point:
         self.y = y
         self.side = side
         self.belong = belong
-
-
-
 
 class Square:
     def __init__(self, up, down, left, right):
@@ -164,16 +160,24 @@ def overlap(squares):
     return squares
 
 
-s1 = Square(3, 1, 1, 3)
-s2 = Square(2, 0, 2, 4)
-s3 = Square(3, 1, 3.5, 5.5)
-s4 = Square(4, 2, 4.5, 6.5)
-s5 = Square(4.5, 2.5, 2.75, 4.75)
-s6 = Square(3.5, 1.5, 0.75, 2.75)
-squares = [s1, s2, s3, s4, s5, s6]
-o = overlap(squares)
-print(squares)
-print()
+if __name__ == '__main__':
+    d = np.load('data/points.npz')
+    points = d['points']
+    labels = d['labels']
+
+    r = 0.1
+    s = []
+    for x, y in points:
+        s.append(Square(y+r, y-r, x-r, x+r))
+
+    start = time.time()
+    s = overlap(s)
+    end = time.time()
+    print(end - start)
+    for i in s:
+        print(len(i.overlap_square))
+
+
 
 # d = np.load('data/points.npz')
 # points = d['points']

@@ -1,17 +1,17 @@
 '''
 计算互相重叠的正方形的面积
 '''
-import operator
-from square_ovlp_detection import Point, Horizontal, Vertical, Square, overlap
+import time
+import numpy as np
+from square_ovlp_detection import Horizontal, Square, overlap
 
 
 def merge_width(squares: list):
     n = len(squares)
+    if n == 0:
+        return 0
 
-    def getLeft(square):
-        return square.left
-
-    squares.sort(key=getLeft)
+    squares.sort(key=lambda s: s.left)
     merge_w = 0
     interval = [squares[0].left, squares[0].right]
     for i in range(1, n):
@@ -38,12 +38,14 @@ def area(squares: list):
     # 在两条水平边之间有重叠部分的正方形
     a = 0
     exist_squares = [horizontals[0].belong]
+
     for i in range(1, len(horizontals)):
         u = horizontals[i-1].y
         d = horizontals[i].y
         if u != d:
             w = merge_width(exist_squares)
-            a += w * (u - d)
+            if w != 0:
+                a += w * (u - d)
 
         if d == horizontals[i].belong.down:
             exist_squares.remove(horizontals[i].belong)
@@ -79,4 +81,19 @@ if __name__ == '__main__':
         s.append(Square(f[0], f[1], f[2], f[3]))
 
     print(area(s))
+
+    d = np.load('data/points.npz')
+    points = d['points']
+    print(points.shape)
+    labels = d['labels']
+
+    r = 0.1
+    s = []
+    for x, y in points:
+        s.append(Square(y + r, y - r, x - r, x + r))
+
+    start = time.time()
+    a = area(s)
+    end = time.time()
+    print(a, end - start)
 
