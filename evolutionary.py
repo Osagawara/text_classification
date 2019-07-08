@@ -1,6 +1,7 @@
 import random
 import numpy as np
 from tqdm import tqdm
+from typing import List
 from square_ovlp_detection import Square, overlap
 
 RADIUS = 0
@@ -66,51 +67,49 @@ class Individual:
 
 # multi-objective optimization
 class MO:
-    def __init__(self, r, points, centers):
-        self.r = r
-        self.points = points
-        self.center = centers
+    def __init__(self, squares: List[Square], budget: float, bid: np.ndarray):
+        self.squares = squares
+        self.budget = budget
+        self.bid = bid
 
-        self.squares = []
-        for p in points:
-            self.squares.append(Square(p[1]+r, p[1]-r, p[0]-r, p[0]+r))
-
-    def NSGA(self, N, steps, probability):
+    def NSGA(self, N: int, steps: int, probability: float):
         num = len(self.points)
-        P = np.random.randint(0, 2, (N, num))
-        P = [Individual(s, self) for s in P]
+        P = []
+        if len(P) < N:
+            foo = np.random.randint(0, 2, (N, num))
+            P.extend([Individual(s, self) for s in foo if np.sum(self.bid[s == 1]) <= self.budget])
+        P = P[:N]
         # 这里的ranking_P只是序列的排序
         for _ in tqdm(steps):
             Q = []
-            mate = []
-            # 选择
-            for _ in range(N):
-                i = random.randrange(0, N)
-                j = random.randrange(0, N)
-                Q.append(P[[j, i][i >= j]])
+            while len(Q) < N:
+                foo = []
+                mate = []
+                # 选择
+                for _ in range(N):
+                    a, b = random.sample(P)
+                    if dominate(a, b) >= 0:
+                        mate.append(a)
+                    else:
+                        mate.append(b)
 
-            # 杂交
-            for _ in range(N):
-                a, b = random.sample(P)
-                if dominate(a, b) >= 0:
-                    mate.append(a)
-                else:
-                    mate.append(b)
+                # 杂交
+                for i in range(0, N, 2):
+                    split = random.randint(1, num-1)
+                    new_a = Individual(np.hstack(mate[i].selection[:split], mate[i+1].selection[split:]), self)
+                    new_b = Individual(np.hstack(mate[i].selection[split:], mate[i+1].selection[:split]), self)
+                    foo.extend([new_a, new_b])
 
-            for i in range(0, N, 2):
-                split = random.randint(1, num-1)
-                new_a = Individual(np.hstack(mate[i].selection[:split], mate[i+1].selection[split:]), self)
-                new_b = Individual(np.hstack(mate[i].selection[split:], mate[i+1].selection[:split]), self)
-                Q.extend([new_a, new_b])
+                # 变异
+                for i in foo:
+                    flip = np.random.uniform(0, 1, num)
+                    mask = np.zeros(num)
+                    mask[flip < probability] = 1
+                    i.selection = np.logical_xor(i.selection, mask)
 
-            # 变异
-            for i in Q:
-                flip = np.random.uniform(0, 1, num)
-                mask = np.zeros(num)
-                mask[flip < probability] = 1
-                i.selection = np.logical_xor(i.selection, mask)
+                Q.extend([i for i in foo if np.sum(self.bid[i.selection == 1]) <= self.budget])
 
-            new_P = P + Q
+            new_P = P + Q[:N]
             rankings_P = ranking(new_P)
             P = []
             collected = 0
@@ -122,11 +121,6 @@ class MO:
                 P.extend([new_P[i] for i in front])
 
         return P
-
-
-
-
-
 
 
 if __name__ == '__main__':
