@@ -88,12 +88,22 @@ if __name__ == '__main__':
     labels = d['labels']
 
     r = 0.1
-    s = []
-    for x, y in points:
-        s.append(Square(y + r, y - r, x - r, x + r))
+    s = [Square(y + r, y - r, x - r, x + r) for x, y in points]
+    # for x, y in points:
+    #     s.append(Square(y + r, y - r, x - r, x + r))
 
     start = time.time()
     a = area(s)
     end = time.time()
     print(a, end - start)
+
+    foo = [
+        [9, -1, -1, 9],
+        [8, -2, -2, 8],
+        [7, -3, -3, 7]
+    ]
+
+    s = [Square(u, b, l ,r) for u, b, l ,r in foo]
+    a = area(s)
+    print(a)
 
