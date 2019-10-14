@@ -63,7 +63,7 @@ class MO:
         self.budget = budget
         self.bid = bid
 
-        self.squares = [ Square(y+r, y-r, x-r, x+r) for  x, y in points]
+        self.squares = [ Square(y+r, y-r, x-r, x+r) for  x, y in points ]
         self.matching_degree_all = match_degree(points, centers, r)
 
     def metric_calculation(self, selections: np.ndarray, triple: np.ndarray):
