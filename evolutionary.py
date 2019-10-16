@@ -2,7 +2,7 @@ import time
 import numpy as np
 from tqdm import tqdm
 from typing import List
-from square_ovlp_detection import Square, overlap
+from square_ovlp_detection import Square
 from overlap_area import area
 
 # M is the amount of the objectives
@@ -56,15 +56,16 @@ def ranking(individuals):
 
 # multi-objective optimization
 class MO:
-    def __init__(self, points: np.ndarray, centers: np.ndarray, r: float, budget: float, bid: np.ndarray):
+    def __init__(self, points: np.ndarray, centers: np.ndarray, r: float, R: float, budget: float, bid: np.ndarray):
         self.points = points
         self.centers = centers
         self.r = r
+        self.R = R
         self.budget = budget
         self.bid = bid
 
         self.squares = [ Square(y+r, y-r, x-r, x+r) for  x, y in points ]
-        self.matching_degree_all = match_degree(points, centers, r)
+        self.matching_degree_all = match_degree(points, centers, R)
 
     def metric_calculation(self, selections: np.ndarray, triple: np.ndarray):
         assert len(selections) == len(triple), 'matrix selection and triple have different length'
@@ -157,17 +158,23 @@ if __name__ == '__main__':
 
     num = 1000
     X = X[:num]
-    r = 1.2
-    budget = 1500
+    r = 0.4
+    R = 5
+    budget = 2000
+    alpha = 0.5
     bid = np.random.uniform(0, 1, num) * 2 + 2
-    MO_object = MO(points[X], centers[labels][X], r, budget, bid)
+    MO_object = MO(points[X], centers[labels][X], r, R, alpha * budget, bid)
 
 
     population = 100
-    step = 1
-    probability = 0.05
+    step = 100
+    probability = 0.01
 
+    start = time.time()
     P = MO_object.NSGA(population, step, probability)
+    end = time.time()
+    print(end - start)
+    np.save('data/evolutionary_result.npy', MO_object.triple)
 
 
 
