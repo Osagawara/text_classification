@@ -1,3 +1,5 @@
+import sys
+import pickle
 import numpy as np
 from tqdm import tqdm, trange
 from evolutionary import match_degree
@@ -58,12 +60,15 @@ class Greedy:
         while len(self.unselected) > 0 and self.mcpc[max_mcpc_index] >= 2 * self.total_value / self.budget:
             self.selected.append(max_mcpc_index)
             self.unselected.remove(max_mcpc_index)
-
             self.mcpc[max_mcpc_index] = -1
             self.covered_area = area([self.squares[_] for _ in self.selected])
             max_mcpc_index = self.one_round(w)
 
-
+    def clear(self):
+        self.selected = []
+        self.unselected = [_ for _ in range(self.num)]
+        self.covered_area = 0
+        self.mcpc = np.zeros(self.num)
 
 
 
@@ -91,7 +96,8 @@ if __name__ == '__main__':
 
         m = np.sum(greedy_object.matching_degree_all[np.array(greedy_object.selected)])
         a = area([greedy_object.squares[i] for i in greedy_object.selected])
-        result.append(  np.array( [ len(greedy_object.selected), m, a ] )  )
+        result.append(np.array([len(greedy_object.selected), m, a]))
+        greedy_object.clear()
 
     result = np.vstack(tuple(result))
     np.save('data/greedy_result.npy', result)
