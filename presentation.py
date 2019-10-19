@@ -1,4 +1,5 @@
 import math
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import pdist, squareform
@@ -6,87 +7,64 @@ from scipy.spatial.distance import pdist, squareform
 d = np.load('data/points.npz')
 points = d['points']
 labels = d['labels']
+num = len(labels)
+num_category = np.max(labels).astype(np.int) + 1
 
 markers = ['o', '+', 'v', '^']
 colors = ['w', 'r', 'w', 'w']
 edgecolors = ['b', 'w', 'g', 'k']
 
-label = [3, 9, 20, 21]
 
-# points = points.T
-# for i in range(4):
-#     plt.scatter(points[0][labels == label[i]],
-#                 points[1][labels == label[i]],
-#                 marker=markers[i],
-#                 c=colors[i],
-#                 edgecolors=edgecolors[i])
-#
-# plt.show()
+# draw the diagram of the average distance of different categories
+sorted_label = np.sort(labels)
+sorted_label_index = np.argsort(labels)
 
-centers = []
-amount = []
-for i in range(46):
-    centers.append(np.mean(points[labels == i], axis=0))
-    amount.append(np.sum(labels == i))
-amount = np.array(amount)
+split = [0] + [i for i in range(1, num) if sorted_label[i-1] != sorted_label[i]] + [num]
 
-centers = np.array(centers)
-D = pdist(centers)
-D = squareform(D)
+sample_time = 100
+D = np.zeros( num_category * (num_category - 1) // 2 )
 
-# delete_num = 26
-for i in range(len(D)):
-    D[i, i] = 100
+for i in range(sample_time):
+    sample_sorted_label_index = [np.random.randint(split[_], split[_+1]) for _ in range(len(split)-1)]
+    sample_data_index = sorted_label_index[np.array(sample_sorted_label_index)]
+    D += pdist(points[sample_data_index])
 
-foo = np.arange(46)
-# for i in range(delete_num):
-#     a = np.unravel_index(np.argmin(D, axis=None), D.shape)
-#     index = a[amount[a[0]] > amount[a[1]]]
-#     D = np.delete(D, index, axis=0)
-#     D = np.delete(D, index, axis=1)
-#     foo = np.delete(foo, index)
+D /= sample_time
 
-while True:
-    less_5 = np.sum(D < 5)
-    if less_5 <= 20:
-        break
-
-    indices = np.where(D < 5)
-    a = [indices[0][0], indices[1][0]]
-    index = a[amount[a[0]] > amount[a[1]]]
-    D = np.delete(D, index, axis=0)
-    D = np.delete(D, index, axis=1)
-    foo = np.delete(foo, index)
-
-for i in range(len(D)):
-    D[i, i] = 0
-
-D = squareform(D)
 hist, bins = np.histogram(D, 100)
-cdf = np.cumsum(hist) / len(D)
-
-x = bins[:100] + (bins[1] - bins[0])/2
-plt.plot(x, cdf)
+hist = np.cumsum(hist) / np.sum(hist)
+plt.plot(bins[:-1], hist, color='r', lw=2.5)
+plt.xticks(fontsize='x-large')
+plt.yticks(fontsize='x-large')
+plt.xlabel('$x$: Average distance of categories', fontsize='xx-large')
+plt.ylabel('the percentage of $\{Aver\ dist \leq x\}$', fontsize='xx-large')
 plt.show()
 
-# 统计一个category中有60%, 70%, 80%, 90%, 100%的点落进的半径
-radius = np.zeros((5, len(foo)))
-percentage = [0.6, 0.7, 0.8, 0.9, 1]
-for i in range(len(foo)):
-    points_in_cate = points[labels == foo[i]]
-    center = np.mean(points_in_cate, axis=0)
-    dist_sort = np.sort(np.linalg.norm(points_in_cate - center, axis=1))
+# draw the distribution of every data to the centroid in different categories
+# percentage is 60%, 70%, 80%, 90%
+radius = np.zeros((5, num_category))
+percentage = [60, 70, 80, 90, 100]
 
+for i in range(num_category):
+    points_this_cat = points[labels == i]
+    center = np.mean(points_this_cat, axis=0)
+    dist_sort = np.sort(np.linalg.norm(points_this_cat - center, axis=1))
     for j in range(5):
-        index = math.ceil(len(points_in_cate) * percentage[j]) - 1
+        index = math.ceil(len(points_this_cat) * percentage[j] / 100) - 1
         radius[j][i] = dist_sort[index]
 
 colors = ['r', 'g', 'dodgerblue', 'b', 'k']
 indice = np.arange(46) + 1
 for i in range(5):
-    plt.plot(foo, radius[i], c=colors[i])
+    plt.plot(indice, radius[i], c=colors[i], linewidth=1.5, label='{}%'.format(percentage[i]))
 
+plt.xticks(fontsize='x-large')
+plt.yticks(fontsize='x-large')
+plt.xlabel('category number', fontsize='xx-large')
+plt.ylabel('the radius containing the percentage of points', fontsize='x-large')
+plt.legend(fontsize='x-large')
 plt.show()
+
 
 
 
