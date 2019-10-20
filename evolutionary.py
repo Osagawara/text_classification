@@ -1,7 +1,6 @@
 import time
 import numpy as np
-from tqdm import tqdm
-from typing import List
+from tqdm import tqdm, trange
 from square_ovlp_detection import Square
 from overlap_area import area
 
@@ -90,7 +89,7 @@ class MO:
         P = []
         len_P = 0
         while len_P < N:
-            foo = np.random.randint(0, 2, (N, num), dtype=np.bool)
+            foo = np.random.randint(0, 3, (N, num), dtype=np.int) < 1
             cost = np.sum(foo * large_bid, axis=1)
             foo = foo[cost <= self.budget]
             if len(foo.shape) == 1:
@@ -101,7 +100,7 @@ class MO:
         P = np.concatenate(P, axis=0)[:N]
         self.metric_calculation(P, self.triple)
         # 这里的ranking_map只是序列的排序
-        for _ in range(steps):
+        for _ in trange(steps):
             rankings, ranking_map = ranking(self.triple)
             Q = []
             len_Q = 0
@@ -152,23 +151,22 @@ class MO:
 if __name__ == '__main__':
     d = np.load('data/points.npz')
     points = d['points']
+    print(len(points))
     labels = d['labels']
     centers = np.load('data/centers.npy')
     X = np.random.permutation(np.arange(len(points)))
 
-    num = 1000
-    X = X[:num]
     r = 0.4
     R = 5
-    budget = 2000
-    alpha = 0.5
-    bid = np.random.uniform(0, 1, num) * 2 + 2
+    budget = 20000
+    alpha = 0.9
+    bid = np.random.uniform(0, 1, len(points)) * 3 + 3
     MO_object = MO(points[X], centers[labels][X], r, R, alpha * budget, bid)
 
 
     population = 100
-    step = 100
-    probability = 0.01
+    step = 50
+    probability = 0.02
 
     start = time.time()
     P = MO_object.NSGA(population, step, probability)
