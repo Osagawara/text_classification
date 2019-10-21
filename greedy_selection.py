@@ -68,8 +68,6 @@ class Greedy:
         sorted_bid_index = np.argsort(self.bid)
         foo = self.budget / np.arange(1, len(sorted_bid)+1) >= sorted_bid
         self.selected = [sorted_bid_index[_] for _ in range(len(sorted_bid)) if foo[_]]
-        print(np.sum(self.bid[np.array(self.selected)]))
-
 
     def one_round(self):
         for i in self.unselected:
@@ -120,9 +118,10 @@ if __name__ == '__main__':
     r = 0.4
     R = 5
     budget = 20000
-    num = 3000
+    num = len(points)
     bid = np.random.uniform(0, 1, num) * 3 + 3
     weight = np.random.rand(3)
+    weight[2] *= 2
     weight = weight / np.sum(weight)
     population = 1
 
@@ -135,7 +134,7 @@ if __name__ == '__main__':
     print("kind = {}, budget = {}, U[3, 6]".format(kind, budget))
     result = []
     for i in range(population):
-        greedy_object.quantity_driven()
+        greedy_object.greedy_selection()
 
         m = np.sum(greedy_object.matching_degree_all[np.array(greedy_object.selected)])
         a = area([greedy_object.squares[i] for i in greedy_object.selected])
@@ -145,6 +144,7 @@ if __name__ == '__main__':
         bid = np.random.uniform(0, 1, num) * 3 + 3
         greedy_object.set_bid(bid)
         weight = np.random.rand(3)
+        weight[2] *= 2
         weight = weight / np.sum(weight)
         greedy_object.set_weight(weight)
 
